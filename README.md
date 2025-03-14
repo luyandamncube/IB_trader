@@ -1,2 +1,8 @@
 # IB_trader
-V2 trading bot
+Trade Algorithmically using Interactive Brokers (IBKR) API.
+
+## Requirements
+
+```
+pip install ibapi
+```
