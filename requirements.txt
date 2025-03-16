@@ -1,1 +1,8 @@
+setuptools
 ibapi
+pandas
+pandas_ta
+lightweight-charts
+ib_insync
+nest_asyncio
+yfinance
