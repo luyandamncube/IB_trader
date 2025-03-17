@@ -1,41 +1,43 @@
-import time
-from ib_insync import *
+import pandas as pd
+from numpy import nan as npNaN
+import pandas_ta as ta
+import yfinance as yf
 from lightweight_charts import Chart
-
+from time import sleep
 
 if __name__ == '__main__':
-    # connect to Interactive Brokers
-    ib = IB()
-    ib.connect('127.0.0.1', 7497, clientId=1)
+    
+    chart = Chart()
+    ticker = 'BTC-USD'
+    msft = yf.Ticker(ticker)
+    df = msft.history(period="4y")
 
-    # request minute bars for a stock
-    stock = Stock('AAPL', 'SMART', 'USD')
+    df = df.reset_index()
+    df.columns = df.columns.str.lower()
+    df = df.rename(columns={'date': 'time'})  # Rename to match lightweight_charts format
 
-    bars = ib.reqHistoricalData(
-        stock, endDateTime='', durationStr='3000 S',
-        barSizeSetting='1 min', whatToShow='MIDPOINT', useRTH=True)
+    # Save the first 20% as ohlcv (historical)
+    df1 = df.iloc[:int(len(df) * 0.2)]
 
-    # convert bars to a pandas dataframe
-    df = util.df(bars)
+    # Save the last 80% as next_ohlcv (new incoming data)
+    df2 = df.iloc[int(len(df) * 0.2):]
 
-    # show the initial chart with the minute bars
-    chart = Chart(volume_enabled=False)
-    chart.set(df)
+    # print(df_ohlcv.head())
+    # print(df_next_ohlcv.head())
+
+    chart.set(df1)
+
+    chart.watermark(ticker)
+
     chart.show()
 
-    # request market data and update the chart with real-time data
-    market_data = ib.reqMktData(stock, '233', False, False)
+    last_close = df1.iloc[-1]['close']
+    
+    for i, series in df2.iterrows():
+        chart.update(series)
 
-    def onPendingTicker(ticker):
-        print("pending ticker event received")
-        for tick in ticker:
-            ticks = util.df(tick.ticks)
-            if ticks is not None:
-                last_price  = ticks[ticks['tickType'] == 4]
-                if not last_price.empty:
-                    print(last_price)
-                    chart.update_from_tick(last_price.squeeze())
-
-    ib.pendingTickersEvent += onPendingTicker
-
-    ib.run()
+        if series['close'] > 20 and last_close < 20:
+            chart.marker(text='The price crossed $20!')
+            
+        last_close = series['close']
+        sleep(0.1)
