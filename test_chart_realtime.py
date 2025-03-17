@@ -36,8 +36,8 @@ if __name__ == '__main__':
     for i, series in df2.iterrows():
         chart.update(series)
 
-        if series['close'] > 20 and last_close < 20:
-            chart.marker(text='The price crossed $20!')
+        if series['close'] > 60000 and last_close < 60000:
+            chart.marker(text='The price crossed $60000!')
             
         last_close = series['close']
         sleep(0.1)

@@ -1,4 +1,3 @@
-setuptools
 ibapi
 pandas
 pandas_ta
